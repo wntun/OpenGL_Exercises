@@ -1,0 +1,59 @@
+#version 400
+#extension GL_ARB_tessellation_shader: enable
+
+layout (isolines, equal_spacing) in;
+uniform int curveType;
+
+
+
+
+vec4 doBezier(float u, vec4 p0, vec4 p1, vec4 p2, vec4 p3)
+{
+	float b0 = (1. -u) * (1. - u) * (1. - u);
+	float b1 = 3 * u * (1. - u) * (1. - u);
+	float b2 = 3 * u * u * (1. - u);
+	float b3 = u * u * u;
+
+	vec4 p = b0 * p0 + b1 * p1 + b2 * p2 + b3 * p3;
+	return p;
+}
+
+vec4 doSpline(float u, vec4 p0, vec4 p1){
+	float b0 = 2 * u * u * u - 3 * u * u+1;
+	float b1 = - 2* u *u * u + 3 * u * u ;
+	float b2 = u * u * u - 2 * u * u + u;
+	float b3 = - 2 * u * u * u - u * u;
+
+	vec4 T0 = vec4(0, 1.5, 0, 1);
+	vec4 T1 = vec4(1, -1, 0, 1);
+		
+	vec4 p = b0 * p0 + b1 * p1 + b2 * T0 + b3 * T1;
+	return p;
+}
+
+
+void main()
+{
+	//vec4 p0 = gl_in[0].gl_Position;
+	//vec4 p1 = gl_in[1].gl_Position;
+	vec4 p0 = gl_in[0].gl_Position;
+	vec4 p1 = gl_in[1].gl_Position;
+	vec4 p2 = gl_in[2].gl_Position;
+	vec4 p3 = gl_in[3].gl_Position;
+	float u = gl_TessCoord.x;
+
+	if(curveType==1){
+		
+		gl_Position = doBezier(u, p0, p1, p2, p3);
+	}
+
+	if(curveType==2){
+		
+		gl_Position = doSpline(u, p0, p1);
+	}
+	
+	
+	//gl_Position = doSpline(u, p0, p1);
+	gl_Position = doBezier(u, p0, p1, p2, p3);
+	
+}

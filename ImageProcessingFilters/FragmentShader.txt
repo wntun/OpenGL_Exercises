@@ -1,0 +1,59 @@
+#version 400 core
+
+
+in vec2 vTex;
+
+uniform sampler2D tex1;
+uniform int filterChoice;
+uniform vec2 u_inverseViewportDimensions;
+
+out vec4 color;
+
+void main()
+{
+	if (filterChoice==0){
+		color = texture(tex1, vTex);
+	}
+
+	if (filterChoice==1){
+		// negate
+		color = vec4(1.0) - texture(tex1, vTex);
+	}
+
+	if (filterChoice==2){
+		// Gaussian
+		mat3 f = 1.0/16.0 * mat3(1,2,1,2,4,2,1,2,1);
+		vec4 c = vec4(0,0,0,0);
+
+		//vec2 txCoord = u_inverseViewportDimensions * gl_FragCoord.xy;
+		vec2 delta = vec2(1.0 * u_inverseViewportDimensions);
+
+		for(int dx=0; dx<3; dx++)
+		{
+			for(int dy=0; dy<3; dy++)
+			{
+				c = f[dy][dx] * texture(tex1, vTex + (delta * vec2(dx-1, dy-1))) + c;	
+			}
+		}					
+		color = c;
+	}
+
+	if (filterChoice==3){
+		// Average
+		mat3 f = 1.0/9.0 * mat3(1,1,1,1,1,1,1,1,1);
+		vec4 c = vec4(0,0,0,0);
+
+		//vec2 txCoord = u_inverseViewportDimensions * gl_FragCoord.xy;
+		vec2 delta = vec2(1.0 * u_inverseViewportDimensions);
+
+		for(int dx=0; dx<3; dx++)
+		{
+			for(int dy=0; dy<3; dy++)
+			{
+				c = f[dy][dx] * texture(tex1, vTex + (delta * vec2(dx-1, dy-1))) + c;	
+			}
+		}					
+		color = c;
+		
+	}
+}
